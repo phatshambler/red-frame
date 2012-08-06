@@ -225,6 +225,12 @@ abstract class RedFrame {
 	public function setValueByType($key, $type, $value, $params = null){
 
 		try{
+			//clear the key if present
+			if(isset($params)){
+				if(isset($params['autodel']) && $params['autodel']){
+					$this->redis->del($key);
+				}
+			}
 
 			if($type == 'set'){
 				//can be array or not
@@ -260,11 +266,6 @@ abstract class RedFrame {
 			}
 			else if($type == 'list'){
 				//value car be array or item
-				if(isset($params)){
-					if(isset($params['autodel']) && $params['autodel']){
-						$this->redis->del($key);
-					}
-				}
 				$this->redis->rpush($key, $value);
 			}
 
