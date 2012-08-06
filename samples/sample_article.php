@@ -42,7 +42,7 @@ class Article extends RedFrame {
 		),
 		'list_thing' => array(
 			'type' => 'list',
-			'params' => array('autodel' => true) //a list. flushes itself if autodel is true
+			'params' => array('autodel' => true) //key flushes itself first if autodel is true
 		)
 
 	);

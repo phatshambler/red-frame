@@ -53,13 +53,21 @@ abstract class RedFrame {
 
 	//Item separator
 	protected $separator;
+
+	protected $_id;
+	protected $_fetched;
+	protected $_items;
 	
-	public function __construct($redis = null) {
+	public function __construct($redis = null, $id = null) {
 		
 		if(isset($redis)) {
 			$this->redis = $redis;
 		}else{
 			return false;
+		}
+
+		if(isset($id) && !empty($id)){
+			$this->_id = $id;
 		}
 
 		$this->superStructure['next'] = $this->infraStructure;
@@ -79,9 +87,50 @@ abstract class RedFrame {
 		return $this->redis;
 	}
 
-	public function getItem($id){
+	public function getPath($path = '', $id = null, $safe = true){
+		if(isset($this->_id) && $id == null){
+			$string = $this->name.$this->separator.$this->_id;
+		}
+		else if(isset($id) && !empty($id)){
+			$string = $this->name.$this->separator.$id;
+		}
+
+		if(!empty($string)){
+			if(!empty($path)){
+				if($safe){
+					//to impl.
+					$string .= $this->separator.$path;
+				}else{
+					$string .= $this->separator.$path;
+				}
+				
+			}
+			return $string;
+		}else{
+			return false;
+		}
+	}
+
+	public function getTypeFromDb($path){
+		return $this->redis->type($path);
+	}
+
+	public function getKeyValue($path){
+		//to impl;
+	}
+
+	public function getItem($id = null){
 
 		try{
+
+			if($id == null && !empty($this->_id)){
+				$id = $this->_id;
+			}
+
+			if(!isset($id) || empty($id)){
+				return false;
+			}
+			
 			$items = array();
 
 			if($this->redis->exists($this->name.$this->separator.$id)){
@@ -93,6 +142,8 @@ abstract class RedFrame {
 			}
 
 			if(count($items) > 0){
+
+				$this->_items = $items;
 				return $items;
 			}
 			else{
@@ -181,9 +232,17 @@ abstract class RedFrame {
 	 *
 	 */
 
-	public function setItem($id, $value){
+	public function setItem($value = array(), $id = null){
 
 		try{
+
+			if($id == null && !empty($this->_id)){
+				$id = $this->_id;
+			}
+
+			if(!isset($id) || empty($id)){
+				return false;
+			}
 
 			//superStructure type must be 'set' for this to work with getAllItems()
 			$this->setValueByType($this->name, $this->superStructure['type'], $id);
